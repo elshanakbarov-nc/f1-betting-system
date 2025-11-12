@@ -41,20 +41,21 @@ public class EventService {
         KafkaMessage message = new KafkaMessage(
                 EventType.BET_PLACED,
                 Instant.now(),
-                eventId,
+                UUID.randomUUID().toString(),
                 winnerDriverId,
-                UUID.randomUUID().toString()
+                eventId
         );
         producer.sendMessage(message);
     }
 
     @Transactional
     public void resolveEventOutcome(String eventId, String winnerDriverId) {
+        System.out.println("🔔 Resolving outcome for Event ID: " + eventId + " with Winner Driver ID: " + winnerDriverId);
         EventOutcome outcome = new EventOutcome(eventId, winnerDriverId);
         eventOutcomeRepository.save(outcome);
-
+        System.out.println("✅ Event Outcome saved for Event ID: " + eventId);
         List<Bet> bets = betRepository.findByEventId(eventId);
-
+        System.out.printf("📊 Found %d bets for Event ID: %s%n", bets.size(), eventId);
         for (Bet bet : bets) {
             User user = userRepository.findById(bet.getUserId())
                     .orElseThrow(() -> new IllegalStateException("User not found for bet"));
